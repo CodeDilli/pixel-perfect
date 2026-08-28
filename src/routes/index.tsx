@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { Reveal, RevealLines } from "@/components/reveal";
+
+const CinematicCanvas = lazy(() =>
+  import("@/components/cinematic-canvas").then((m) => ({ default: m.CinematicCanvas })),
+);
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -66,75 +70,150 @@ function Timecode() {
   );
 }
 
+function useActiveWordHighlight(sectionId: string) {
+  useEffect(() => {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    const items = section.querySelectorAll<HTMLElement>("[data-word]");
+    if (!items.length) return;
+
+    let raf = 0;
+    const update = () => {
+      const rect = section.getBoundingClientRect();
+      const total = Math.max(1, rect.height - window.innerHeight);
+      const p = Math.min(1, Math.max(0, -rect.top / total));
+      const idx = Math.min(items.length - 1, Math.floor(p * items.length));
+      items.forEach((el, i) => {
+        el.dataset.active = i === idx ? "true" : "false";
+        // Progressive opacity for depth feel in 2D fallback
+        const dist = Math.abs(i - idx);
+        el.style.opacity = String(Math.max(0.2, 1 - dist * 0.22));
+      });
+      raf = 0;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [sectionId]);
+}
+
 function Index() {
+  useActiveWordHighlight("scene-transform");
+
   return (
     <main className="grain min-h-screen bg-background text-foreground">
       {/* HUD */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-center justify-between px-5 py-5 md:px-10">
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-40 flex items-center justify-between px-4 py-4 sm:px-5 sm:py-5 md:px-10">
         <span className="mono-label">{NAME}</span>
         <Timecode />
       </div>
 
       {/* SCENE 01 — HERO */}
-      <section className="flex min-h-screen flex-col justify-center px-5 pt-28 pb-20 md:px-10">
-        <Reveal className="mb-10">
+      <section className="flex min-h-[100svh] flex-col justify-center px-4 pt-24 pb-16 sm:px-5 md:px-10 md:pt-28 md:pb-20">
+        <Reveal className="mb-8 md:mb-10">
           <span className="mono-label fade-rise block">SCENE 01 / OPENING</span>
         </Reveal>
-        <RevealLines
-          className="display-xl uppercase"
-          lines={[
-            <>I EDIT.</>,
-            <>I CREATE.</>,
-            <>
-              I <span className="text-accent">CODE.</span>
-            </>,
-          ]}
-        />
-        <Reveal className="mt-12 flex flex-wrap items-end justify-between gap-8">
+
+        {/* Mobile: stacked single words for maximum impact */}
+        <div className="md:hidden">
+          <RevealLines
+            className="display-xl uppercase"
+            lines={[
+              <>I</>,
+              <>EDIT.</>,
+              <>I</>,
+              <>CREATE.</>,
+              <>
+                I <span className="text-accent">CODE.</span>
+              </>,
+            ]}
+          />
+        </div>
+        <div className="hidden md:block">
+          <RevealLines
+            className="display-xl uppercase"
+            lines={[
+              <>I EDIT.</>,
+              <>I CREATE.</>,
+              <>
+                I <span className="text-accent">CODE.</span>
+              </>,
+            ]}
+          />
+        </div>
+
+        <Reveal className="mt-10 flex flex-col gap-6 sm:mt-12 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-8">
           <p className="body-copy fade-rise max-w-sm text-balance">
             still learning. still building.{" "}
             <span className="editorial text-foreground">still becoming.</span>
           </p>
           <span className="mono-label fade-rise" style={{ transitionDelay: "120ms" }}>
-            V I D E O &nbsp; E D I T O R &nbsp;/&nbsp; BCA · YEAR 01
+            <span className="sm:hidden">VIDEO EDITOR / BCA · Y01</span>
+            <span className="hidden sm:inline">
+              V I D E O &nbsp; E D I T O R &nbsp;/&nbsp; BCA · YEAR 01
+            </span>
           </span>
         </Reveal>
       </section>
 
-      {/* SCENE 02 — TRANSFORMATION */}
-      <section className="border-t border-border px-5 py-32 md:px-10 md:py-48">
-        <Reveal className="mb-16">
-          <span className="mono-label fade-rise block">SCENE 02 / TRANSFORMATION</span>
-        </Reveal>
-        <ul className="space-y-2">
-          {["EDIT", "FRAME", "STORY", "CODE", "BUILD", "FUTURE"].map((word, i) => (
-            <Reveal as="li" key={word} threshold={0.6} className="group">
-              <span className="reveal-mask flex items-baseline gap-6">
-                <span
-                  className="reveal-line display-l w-full transition-colors duration-500 hover:text-accent"
-                  style={{ opacity: 1 - i * 0.06 }}
+      {/* SCENE 02 — 3D TYPOGRAPHY TRANSITION
+          Tall scroll runway + sticky viewport. Camera flies through the words.
+          Mobile uses a shorter runway to reduce fatigue. */}
+      <section
+        id="scene-transform"
+        className="relative border-t border-border h-[220vh] md:h-[320vh]"
+      >
+        <div className="sticky top-0 h-[100svh] w-full overflow-hidden bg-background">
+          <Suspense fallback={null}>
+            <CinematicCanvas sectionId="scene-transform" />
+          </Suspense>
+
+          {/* Readable overlay — always present for a11y & reduced-motion */}
+          <div className="pointer-events-none relative z-10 flex h-full flex-col justify-between px-4 py-16 sm:px-5 sm:py-20 md:px-10 md:py-24">
+            <div className="flex items-baseline justify-between gap-4">
+              <span className="mono-label block">SCENE 02 / TRANSITION</span>
+              <span className="mono-label block opacity-50">SCROLL</span>
+            </div>
+
+            {/* 2D word rail — works without WebGL; cinematic even when reduced-motion */}
+            <ul className="flex flex-col gap-0.5 md:gap-0" aria-label="Journey words">
+              {["EDIT", "FRAME", "STORY", "CODE", "BUILD", "FUTURE"].map((word, i) => (
+                <li
+                  key={word}
+                  className="font-[family-name:var(--type-display)] text-[clamp(1.75rem,6vw,4.5rem)] font-semibold uppercase leading-[0.95] tracking-[-0.04em] text-foreground transition-[opacity,color] duration-500"
+                  data-word={word}
+                  data-index={i}
                 >
                   {word}
-                </span>
-              </span>
-            </Reveal>
-          ))}
-        </ul>
-        <Reveal className="mt-16">
-          <p className="mono-label fade-rise">THE WORDS CHANGE. THE INSTINCT DOESN'T.</p>
-        </Reveal>
+                </li>
+              ))}
+            </ul>
+
+            <div className="max-w-xl">
+              <p className="body-copy !max-w-md text-balance opacity-90">
+                The words change. The instinct doesn&apos;t.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* SCENE 03 — SELECTED WORK */}
-      <section className="border-t border-border px-5 py-32 md:px-10 md:py-48">
-        <Reveal className="mb-24 flex items-baseline justify-between">
+      <section className="border-t border-border px-4 py-24 sm:px-5 md:px-10 md:py-48">
+        <Reveal className="mb-16 flex items-baseline justify-between md:mb-24">
           <span className="mono-label fade-rise">SCENE 03 / SELECTED WORK</span>
           <span className="mono-label fade-rise">04 ENTRIES</span>
         </Reveal>
 
-        <div className="space-y-28 md:space-y-40">
+        <div className="space-y-20 md:space-y-40">
           {projects.map((p) => (
-            <Reveal as="article" key={p.no} className="grid gap-6 md:grid-cols-12">
+            <Reveal as="article" key={p.no} className="grid gap-4 md:grid-cols-12 md:gap-6">
               <div className="md:col-span-2">
                 <span className="mono-label fade-rise text-accent">{p.no}</span>
               </div>
@@ -145,13 +224,13 @@ function Index() {
                   lineClassName="hover:tracking-tight"
                 />
                 <p
-                  className="mono-label fade-rise mt-5"
+                  className="mono-label fade-rise mt-4 md:mt-5"
                   style={{ transitionDelay: "160ms" }}
                 >
                   {p.meta}
                 </p>
                 <p
-                  className="body-copy fade-rise mt-6"
+                  className="body-copy fade-rise mt-5 md:mt-6"
                   style={{ transitionDelay: "240ms" }}
                 >
                   {p.body}
@@ -163,22 +242,22 @@ function Index() {
       </section>
 
       {/* SCENE 04 — ABOUT */}
-      <section className="border-t border-border px-5 py-32 md:px-10 md:py-48">
-        <Reveal className="mb-14">
+      <section className="border-t border-border px-4 py-24 sm:px-5 md:px-10 md:py-48">
+        <Reveal className="mb-10 md:mb-14">
           <span className="mono-label fade-rise block">04 / ABOUT</span>
         </Reveal>
         <RevealLines
           className="display-m uppercase"
-          lines={[<>I'M STILL</>, <>FIGURING IT OUT.</>]}
+          lines={[<>I&apos;M STILL</>, <>FIGURING IT OUT.</>]}
         />
-        <Reveal className="mt-12 grid gap-10 md:grid-cols-2">
+        <Reveal className="mt-10 grid gap-8 md:mt-12 md:grid-cols-2 md:gap-10">
           <p className="body-copy fade-rise">
             I started in a timeline — trimming, pacing, chasing the exact frame where a shot
             stops being footage and starts being a story. Editing taught me rhythm, patience
             and the discipline of removing things.
           </p>
           <p className="body-copy fade-rise" style={{ transitionDelay: "140ms" }}>
-            Now I'm in my first year of BCA, learning to build the tools instead of only using
+            Now I&apos;m in my first year of BCA, learning to build the tools instead of only using
             them. Same instinct, different timeline: structure, timing, and the quiet
             satisfaction of something finally cutting clean.
           </p>
@@ -186,8 +265,8 @@ function Index() {
       </section>
 
       {/* SCENE 05 — NEXT CHAPTER */}
-      <section className="border-t border-border px-5 py-32 md:px-10 md:py-48">
-        <Reveal className="mb-14">
+      <section className="border-t border-border px-4 py-24 sm:px-5 md:px-10 md:py-48">
+        <Reveal className="mb-10 md:mb-14">
           <span className="mono-label fade-rise block">SCENE 05 / NEXT CHAPTER</span>
         </Reveal>
         <RevealLines
@@ -205,48 +284,56 @@ function Index() {
       </section>
 
       {/* SCENE 06 — CONTACT */}
-      <section className="border-t border-border px-5 py-32 md:px-10 md:py-48">
-        <Reveal className="mb-14">
+      <section className="border-t border-border px-4 py-24 sm:px-5 md:px-10 md:py-48">
+        <Reveal className="mb-10 md:mb-14">
           <span className="mono-label fade-rise block">SCENE 06 / CONTACT</span>
         </Reveal>
         <RevealLines className="display-m uppercase" lines={[<>GOT A STORY?</>]} />
-        <RevealLines
-          className="display-xl mt-6 uppercase"
-          lines={[<>LET'S</>, <>MAKE</>, <>SOMETHING.</>]}
-        />
-        <Reveal className="mt-16 flex flex-wrap gap-x-14 gap-y-6">
+        <div className="md:hidden">
+          <RevealLines
+            className="display-xl mt-4 uppercase"
+            lines={[<>LET&apos;S</>, <>MAKE</>, <>SOMETHING.</>]}
+          />
+        </div>
+        <div className="hidden md:block">
+          <RevealLines
+            className="display-xl mt-6 uppercase"
+            lines={[<>LET&apos;S</>, <>MAKE</>, <>SOMETHING.</>]}
+          />
+        </div>
+        <Reveal className="mt-12 flex flex-wrap gap-x-10 gap-y-5 md:mt-16 md:gap-x-14 md:gap-y-6">
           <a
             href="mailto:hello@example.com"
-            className="mono-label transition-colors hover:text-accent"
+            className="mono-label pointer-events-auto transition-colors hover:text-accent"
           >
             EMAIL
           </a>
-          <a href="#" className="mono-label transition-colors hover:text-accent">
+          <a href="#" className="mono-label pointer-events-auto transition-colors hover:text-accent">
             INSTAGRAM
           </a>
-          <a href="#" className="mono-label transition-colors hover:text-accent">
+          <a href="#" className="mono-label pointer-events-auto transition-colors hover:text-accent">
             YOUTUBE
           </a>
-          <a href="#" className="mono-label transition-colors hover:text-accent">
+          <a href="#" className="mono-label pointer-events-auto transition-colors hover:text-accent">
             GITHUB
           </a>
         </Reveal>
       </section>
 
       {/* FINAL SHOT */}
-      <footer className="border-t border-border px-5 py-32 md:px-10 md:py-52">
+      <footer className="border-t border-border px-4 py-24 sm:px-5 md:px-10 md:py-52">
         <Reveal>
           <span className="mono-label fade-rise block">END OF SEQUENCE</span>
         </Reveal>
         <RevealLines
-          className="display-m mt-12 uppercase"
+          className="display-m mt-10 uppercase md:mt-12"
           lines={[<>EVERY FRAME</>, <>HAS A STORY.</>]}
         />
         <RevealLines
-          className="display-m mt-10 uppercase text-muted-foreground"
-          lines={[<>I'M LEARNING</>, <>TO BUILD THEM TOO.</>]}
+          className="display-m mt-8 uppercase text-muted-foreground md:mt-10"
+          lines={[<>I&apos;M LEARNING</>, <>TO BUILD THEM TOO.</>]}
         />
-        <Reveal className="mt-24 flex flex-wrap items-baseline justify-between gap-4">
+        <Reveal className="mt-16 flex flex-col gap-4 sm:mt-24 sm:flex-row sm:flex-wrap sm:items-baseline sm:justify-between">
           <h2 className="heading fade-rise uppercase">{NAME}</h2>
           <p className="mono-label fade-rise">
             VIDEO EDITOR / BCA / ASPIRING CREATIVE TECHNOLOGIST
