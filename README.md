@@ -1,24 +1,58 @@
 # Pixel Perfect
 
-Implement exactly the screenshot and nothing else
+Portfolio of **Dilli Ganesh** — video editor learning to code.
 
-This project was built with [Lovable](https://lovable.dev).
+Cinematic single-page experience built with TanStack Start, React, and Tailwind CSS.
 
-## Build with Lovable
+## Stack
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/ad349338-4590-49ac-baed-d8d9ec2b9175).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+- [TanStack Start](https://tanstack.com/start) + TanStack Router
+- React 19
+- Tailwind CSS 4
+- Vite 8
+- TypeScript
+- shadcn/ui components
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Requires Node.js 20+ (or Bun).
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+# Install dependencies
+npm install
+# or
+bun install
+
+# Start dev server
 npm run dev
 ```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Scripts
+
+| Command           | Description                |
+| ----------------- | -------------------------- |
+| `npm run dev`     | Start development server   |
+| `npm run build`   | Production build           |
+| `npm run preview` | Preview production build   |
+| `npm run lint`    | Run ESLint                 |
+| `npm run format`  | Format with Prettier       |
+
+## Project structure
+
+```
+src/
+  components/   # UI + Reveal animations
+  hooks/        # Shared hooks
+  lib/          # Utilities + error helpers
+  routes/       # File-based routes
+  styles.css    # Design system + Tailwind
+  server.ts     # SSR entry with error handling
+  start.ts      # Start middleware (CSRF + errors)
+  router.tsx    # Router factory
+```
+
+## License
+
+Private / personal portfolio.
