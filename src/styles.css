@@ -137,15 +137,16 @@
 
 @utility display-xl {
   font-family: var(--type-display);
-  font-size: clamp(4rem, 12.5vw, 13rem);
-  line-height: 0.84;
+  /* Mobile-first: still massive; line breaks handled in JSX */
+  font-size: clamp(3.25rem, 14vw, 13rem);
+  line-height: 0.86;
   letter-spacing: -0.045em;
   font-weight: 600;
 }
 
 @utility display-l {
   font-family: var(--type-display);
-  font-size: clamp(2.75rem, 7.5vw, 8rem);
+  font-size: clamp(2.25rem, 8vw, 8rem);
   line-height: 0.9;
   letter-spacing: -0.04em;
   font-weight: 600;
@@ -153,7 +154,7 @@
 
 @utility display-m {
   font-family: var(--type-display);
-  font-size: clamp(2rem, 5vw, 5rem);
+  font-size: clamp(1.75rem, 5.5vw, 5rem);
   line-height: 0.95;
   letter-spacing: -0.035em;
   font-weight: 500;
@@ -161,7 +162,7 @@
 
 @utility heading {
   font-family: var(--type-display);
-  font-size: clamp(1.6rem, 3.2vw, 3.25rem);
+  font-size: clamp(1.45rem, 3.5vw, 3.25rem);
   line-height: 1.02;
   letter-spacing: -0.03em;
   font-weight: 500;
@@ -255,3 +256,22 @@
   }
 }
 
+/* ---------- 3D section a11y fallback ---------- */
+@media (prefers-reduced-motion: reduce) {
+  #scene-transform {
+    height: auto !important;
+  }
+  #scene-transform .sticky {
+    position: relative;
+    height: auto;
+    min-height: 60vh;
+  }
+}
+
+/* Safe-area padding for notched phones */
+@supports (padding: max(0px)) {
+  .grain {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
