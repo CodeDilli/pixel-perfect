@@ -97,17 +97,17 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.72 0.16 62);
 
-  --font-display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-editorial: "Instrument Serif", ui-serif, Georgia, serif;
-  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --type-display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --type-editorial: "Instrument Serif", ui-serif, Georgia, serif;
+  --type-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --type-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 @theme inline {
-  --font-display: var(--font-display);
-  --font-editorial: var(--font-editorial);
-  --font-sans: var(--font-body);
-  --font-mono: var(--font-mono);
+  --font-display: var(--type-display);
+  --font-editorial: var(--type-editorial);
+  --font-sans: var(--type-body);
+  --font-mono: var(--type-mono);
 }
 
 @layer base {
@@ -123,7 +123,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-body);
+    font-family: var(--type-body);
     font-feature-settings: "kern" 1, "liga" 1;
   }
 
@@ -136,7 +136,7 @@
 /* ---------- Typographic voices ---------- */
 
 @utility display-xl {
-  font-family: var(--font-display);
+  font-family: var(--type-display);
   font-size: clamp(4rem, 12.5vw, 13rem);
   line-height: 0.84;
   letter-spacing: -0.045em;
@@ -144,7 +144,7 @@
 }
 
 @utility display-l {
-  font-family: var(--font-display);
+  font-family: var(--type-display);
   font-size: clamp(2.75rem, 7.5vw, 8rem);
   line-height: 0.9;
   letter-spacing: -0.04em;
@@ -152,7 +152,7 @@
 }
 
 @utility display-m {
-  font-family: var(--font-display);
+  font-family: var(--type-display);
   font-size: clamp(2rem, 5vw, 5rem);
   line-height: 0.95;
   letter-spacing: -0.035em;
@@ -160,7 +160,7 @@
 }
 
 @utility heading {
-  font-family: var(--font-display);
+  font-family: var(--type-display);
   font-size: clamp(1.6rem, 3.2vw, 3.25rem);
   line-height: 1.02;
   letter-spacing: -0.03em;
@@ -168,14 +168,14 @@
 }
 
 @utility editorial {
-  font-family: var(--font-editorial);
+  font-family: var(--type-editorial);
   font-weight: 400;
   font-style: italic;
   letter-spacing: -0.02em;
 }
 
 @utility mono-label {
-  font-family: var(--font-mono);
+  font-family: var(--type-mono);
   font-size: clamp(0.625rem, 0.78vw, 0.8125rem);
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -184,7 +184,7 @@
 }
 
 @utility body-copy {
-  font-family: var(--font-body);
+  font-family: var(--type-body);
   font-size: clamp(1rem, 1.1vw, 1.175rem);
   line-height: 1.65;
   letter-spacing: -0.005em;
